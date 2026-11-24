@@ -263,7 +263,9 @@ function findSingleStar(s, from, end) {
 /**
  * Render s[a..b) inline into `out` (an array of strings). Same semantics as
  * the reference's inline(), but range-based (no substrings for nested
- * content) and plain runs are bulk-escaped instead of per character.
+ * content) and plain runs are bulk-escaped instead of per character. A
+ * single char-by-char scan is used: jumping with indexOf costs four native
+ * scans of the remaining text per step, which measured slower than one scan.
  */
 function inlineRange(s, a, b, env, out) {
   let i = a;
@@ -782,7 +784,9 @@ function pageOf(s) {
     ...cardOf(s),
     slug: s.slug,
     content: s.html,
-    toc: s.toc.map((h) => ({ level: h.level, id: h.id, html: h.html })),
+    // s.toc already holds {level, id, html} entries in this exact shape,
+    // so it is used as-is instead of mapping it into fresh objects.
+    toc: s.toc,
     newer: linkOf(s.newer ?? null),
     older: linkOf(s.older ?? null),
     is_post: s.post,
